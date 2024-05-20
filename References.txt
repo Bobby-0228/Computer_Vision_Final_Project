@@ -1,0 +1,13 @@
+optical flow in two imgs from scratch:
+https://github.com/Utkal97/Object-Tracking
+
+optical flow with video with opencv:
+https://github.com/opencv/opencv/tree/4.x/samples/python/tutorial_code/video/optical_flow
+
+https://www.bilibili.com/read/cv4868573/
+
+https://zh.wikipedia.org/zh-tw/%E5%8D%A2%E5%8D%A1%E6%96%AF-%E5%8D%A1%E7%BA%B3%E5%BE%B7%E6%96%B9%E6%B3%95
+
+https://blog.csdn.net/leviopku/article/details/121773298
+
+https://blog.csdn.net/xian0710830114/article/details/134302562
