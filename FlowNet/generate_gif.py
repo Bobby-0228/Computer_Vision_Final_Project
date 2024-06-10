@@ -4,7 +4,7 @@ import numpy as np
 import models
 import torch.backends.cudnn as cudnn
 
-from imageio.v2 import imread, imwrite
+import imageio.v2 as imageio
 from flow_estimate import calcOpticalFlowFlownet
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -44,9 +44,14 @@ def detect_movement(frame1, frame2, sensitivity=30):
     movement_threshold = 1000
     return num_white_pixels > movement_threshold
 
+cam_sights = []
+flow_farnebacks = []
+flow_ss = []
+flow_cs = []
+flow_srefs = []
+flow_crefs = []
 
-
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture("/home/cv/Projects/FlowNetPytorch/cat/cat.mp4")
 ret, frame1 = cap.read()
 ret, frame2 = cap.read()
 flow_s = calcOpticalFlowFlownet(model_s, frame1, frame2, div_flow, upsampling=None)
@@ -56,7 +61,9 @@ hsv = np.zeros_like(frame1)
 hsv[..., 1] = 255
 while(1):
     ret, frame2 = cap.read()
-
+    if not ret:
+        print('No frames grabbed!')
+        break
     flow_sref = calcOpticalFlowFlownet(model_sref, frame1, frame2, div_flow, upsampling=None)
     flow_cref = calcOpticalFlowFlownet(model_cref, frame1, frame2, div_flow, upsampling=None)
 
@@ -74,11 +81,18 @@ while(1):
     hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
     flow_farneback = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
-    cv2.imshow("Farneback", flow_farneback)
-    cv2.imshow("Our FlowNet Simple", cv2.cvtColor(flow_s, cv2.COLOR_RGB2BGR) )
-    cv2.imshow("Our FlowNet Correlation", cv2.cvtColor(flow_c, cv2.COLOR_RGB2BGR) )
-    cv2.imshow("Reference FlowNet Simple", cv2.cvtColor(flow_sref, cv2.COLOR_RGB2BGR) )
-    cv2.imshow("Reference FlowNet Correlation", cv2.cvtColor(flow_cref, cv2.COLOR_RGB2BGR) )
+    cam_sights.append(cv2.cvtColor(frame2, cv2.COLOR_RGB2BGR))
+    flow_farnebacks.append(flow_farneback)
+    flow_ss.append(cv2.cvtColor(flow_s, cv2.COLOR_RGB2BGR) )
+    flow_cs.append(cv2.cvtColor(flow_c, cv2.COLOR_RGB2BGR) )
+    flow_srefs.append(cv2.cvtColor(flow_sref, cv2.COLOR_RGB2BGR) )
+    flow_crefs.append(cv2.cvtColor(flow_cref, cv2.COLOR_RGB2BGR) )
+
+    # cv2.imshow("Farneback", flow_farneback)
+    # cv2.imshow("Our FlowNet Simple", cv2.cvtColor(flow_s, cv2.COLOR_RGB2BGR) )
+    # cv2.imshow("Our FlowNet Correlation", cv2.cvtColor(flow_c, cv2.COLOR_RGB2BGR) )
+    # cv2.imshow("Reference FlowNet Simple", cv2.cvtColor(flow_sref, cv2.COLOR_RGB2BGR) )
+    # cv2.imshow("Reference FlowNet Correlation", cv2.cvtColor(flow_cref, cv2.COLOR_RGB2BGR) )
 
     cv2.imshow("Camera Sight", frame2)
 
@@ -88,3 +102,13 @@ while(1):
     prvs = next
     frame1 = frame2
 cv2.destroyAllWindows()
+
+
+
+
+imageio.mimsave('./gifs/cam_sights.gif', cam_sights, fps=10)
+imageio.mimsave('./gifs/farneback.gif', flow_farnebacks, fps=10)
+imageio.mimsave('./gifs/our_flownet_c.gif', flow_cs, fps=10)
+imageio.mimsave('./gifs/our_flownet_s.gif', flow_ss, fps=10)
+imageio.mimsave('./gifs/pretrained_flownet_c.gif', flow_crefs, fps=10)
+imageio.mimsave('./gifs/pretrained_flownet_s.gif', flow_srefs, fps=10)
