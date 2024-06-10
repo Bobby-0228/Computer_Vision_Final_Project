@@ -36,23 +36,12 @@ else:
     div_flow = 20.0
 
 def detect_movement(frame1, frame2, sensitivity=30):
-    # Convert frames to grayscale
     gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
     gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
-    
-    # Compute absolute difference between frames
     diff = cv2.absdiff(gray1, gray2)
-    
-    # Apply threshold to detect significant changes
     _, thresh = cv2.threshold(diff, sensitivity, 255, cv2.THRESH_BINARY)
-    
-    # Count the number of white pixels in the thresholded image
     num_white_pixels = cv2.countNonZero(thresh)
-    
-    # Define a threshold for the number of white pixels to determine movement
     movement_threshold = 1000
-    
-    # Return True if movement is detected, False otherwise
     return num_white_pixels > movement_threshold
 
 
@@ -61,26 +50,41 @@ cap = cv2.VideoCapture(0)
 ret, frame1 = cap.read()
 ret, frame2 = cap.read()
 flow_s = calcOpticalFlowFlownet(model_s, frame1, frame2, div_flow, upsampling=None)
+flow_c = calcOpticalFlowFlownet(model_c, frame1, frame2, div_flow, upsampling=None)
+prvs = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+hsv = np.zeros_like(frame1)
+hsv[..., 1] = 255
 while(1):
     ret, frame2 = cap.read()
 
+    flow_sref = calcOpticalFlowFlownet(model_sref, frame1, frame2, div_flow, upsampling=None)
+    flow_cref = calcOpticalFlowFlownet(model_cref, frame1, frame2, div_flow, upsampling=None)
+
     if detect_movement(frame1, frame2):
         flow_s = calcOpticalFlowFlownet(model_s, frame1, frame2, div_flow, upsampling=None)
+        flow_c = calcOpticalFlowFlownet(model_c, frame1, frame2, div_flow, upsampling=None)
     else:
         flow_s = np.ones_like(flow_s, dtype=np.float32)
-    # flow_c = calcOpticalFlowFlownet(model_c, frame1, frame2, div_flow, upsampling=None)
-    cv2.imshow("Optical Flow by FlowNet_s", cv2.cvtColor(flow_s, cv2.COLOR_RGB2BGR) )
-    # cv2.imshow("Optical Flow by FlowNet_c", cv2.cvtColor(flow_c, cv2.COLOR_RGB2BGR) )
+        flow_c = np.ones_like(flow_c, dtype=np.float32)
 
-    # flow_sref = calcOpticalFlowFlownet(model_sref, frame1, frame2, div_flow, upsampling=None)
-    # flow_cref = calcOpticalFlowFlownet(model_cref, frame1, frame2, div_flow, upsampling=None)
-    # cv2.imshow("Optical Flow by FlowNet_s_ref", cv2.cvtColor(flow_sref, cv2.COLOR_RGB2BGR) )
-    # cv2.imshow("Optical Flow by FlowNet_c_ref", cv2.cvtColor(flow_cref, cv2.COLOR_RGB2BGR) )
+    next = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+    flow = cv2.calcOpticalFlowFarneback(prvs, next, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+    mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
+    hsv[..., 0] = ang*180/np.pi/2
+    hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
+    flow_farneback = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+    cv2.imshow("Farneback", flow_farneback)
+    cv2.imshow("Our FlowNet Simple", cv2.cvtColor(flow_s, cv2.COLOR_RGB2BGR) )
+    cv2.imshow("Our FlowNet Correlation", cv2.cvtColor(flow_c, cv2.COLOR_RGB2BGR) )
+    cv2.imshow("Reference FlowNet Simple", cv2.cvtColor(flow_sref, cv2.COLOR_RGB2BGR) )
+    cv2.imshow("Reference FlowNet Correlation", cv2.cvtColor(flow_cref, cv2.COLOR_RGB2BGR) )
 
     cv2.imshow("Camera Sight", frame2)
 
     k = cv2.waitKey(30) & 0xff
     if k == 27:
         break
+    prvs = next
     frame1 = frame2
 cv2.destroyAllWindows()
