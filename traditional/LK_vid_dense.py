@@ -6,7 +6,7 @@ parser = argparse.ArgumentParser(description='This sample demonstrates Lucas-Kan
                                               The example file can be downloaded from: \
                                               https://www.bogotobogo.com/python/OpenCV_Python/images/mean_shift_tracking/slow_traffic_small.mp4')
 
-parser.add_argument('-image', type=str, default="./vid/cat/cat.mp4")
+parser.add_argument('-image', type=str, default="/home/cv/Projects/FlowNetPytorch/cat/cat.mp4")
 args = parser.parse_args()
 
 cap = cv.VideoCapture(args.image)

@@ -51,7 +51,7 @@ flow_cs = []
 flow_srefs = []
 flow_crefs = []
 
-cap = cv2.VideoCapture("/home/cv/Projects/FlowNetPytorch/cat/cat.mp4")
+cap = cv2.VideoCapture("/home/cv/Projects/Computer_Vision_Final_Project/FlowNet/gifs/IMG_1667.mov")
 ret, frame1 = cap.read()
 ret, frame2 = cap.read()
 flow_s = calcOpticalFlowFlownet(model_s, frame1, frame2, div_flow, upsampling=None)
@@ -71,8 +71,8 @@ while(1):
         flow_s = calcOpticalFlowFlownet(model_s, frame1, frame2, div_flow, upsampling=None)
         flow_c = calcOpticalFlowFlownet(model_c, frame1, frame2, div_flow, upsampling=None)
     else:
-        flow_s = np.ones_like(flow_s, dtype=np.float32)
-        flow_c = np.ones_like(flow_c, dtype=np.float32)
+        flow_s = np.ones_like(flow_s, dtype=np.uint8)*255
+        flow_c = np.ones_like(flow_c, dtype=np.uint8)*255
 
     next = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
     flow = cv2.calcOpticalFlowFarneback(prvs, next, None, 0.5, 3, 15, 3, 5, 1.2, 0)
@@ -106,9 +106,9 @@ cv2.destroyAllWindows()
 
 
 
-imageio.mimsave('./gifs/cam_sights.gif', cam_sights, fps=10)
-imageio.mimsave('./gifs/farneback.gif', flow_farnebacks, fps=10)
-imageio.mimsave('./gifs/our_flownet_c.gif', flow_cs, fps=10)
-imageio.mimsave('./gifs/our_flownet_s.gif', flow_ss, fps=10)
-imageio.mimsave('./gifs/pretrained_flownet_c.gif', flow_crefs, fps=10)
-imageio.mimsave('./gifs/pretrained_flownet_s.gif', flow_srefs, fps=10)
+imageio.mimsave('./gifs/cam_sights.gif', cam_sights, fps=24)
+imageio.mimsave('./gifs/farneback.gif', flow_farnebacks, fps=24)
+imageio.mimsave('./gifs/our_flownet_c.gif', flow_cs, fps=24)
+imageio.mimsave('./gifs/our_flownet_s.gif', flow_ss, fps=24)
+imageio.mimsave('./gifs/pretrained_flownet_c.gif', flow_crefs, fps=24)
+imageio.mimsave('./gifs/pretrained_flownet_s.gif', flow_srefs, fps=24)
